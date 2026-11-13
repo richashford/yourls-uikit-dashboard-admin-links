@@ -15,6 +15,35 @@ yourls_add_action( 'html_footer', 'rja_uikit_dash_admin_links' );
 yourls_add_action( 'html_head', 'rja_uikit_infos_styles' );
 yourls_add_action( 'pre_html_head', 'rja_uikit_infos_nocache' );
 yourls_add_action( 'html_footer', 'rja_uikit_infos_nav_unwrap' );
+yourls_add_action( 'html_footer', 'rja_uikit_filter_to_top' );
+
+/**
+ * The admin Links page renders the search/filter form inside the table's
+ * <tfoot>, below all rows. Move it above the table so filtering does not
+ * require scrolling past the whole list. Pagination stays at the bottom.
+ */
+function rja_uikit_filter_to_top() {
+    if ( !yourls_is_admin() ) {
+        return;
+    }
+    ?>
+    <style>
+    #rja-filter-top { margin: 0 0 18px; }
+    #rja-filter-top #filter_form { padding: 0 !important; }
+    </style>
+    <script>
+    (function () {
+        var table  = document.getElementById('main_table');
+        var filter = document.getElementById('filter_form');
+        if (!table || !filter) return;
+        var holder = document.createElement('div');
+        holder.id = 'rja-filter-top';
+        holder.appendChild(filter);
+        table.parentNode.insertBefore(holder, table);
+    })();
+    </script>
+    <?php
+}
 
 /**
  * The skin renders its navbar inside #wrap. On the stats page #wrap becomes a

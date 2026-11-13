@@ -75,6 +75,8 @@ function rja_uikit_infos_styles( $args ) {
     @media (max-width: 1160px) {
         body.infos #wrap { margin-left: 16px !important; margin-right: 16px !important; }
     }
+    /* Core YOURLS logo header; redundant with the skin navbar */
+    body.infos header[role="banner"] { display: none !important; }
     body.infos h2#informations {
         margin-top: 0 !important;
         font-size: 1.1rem !important;

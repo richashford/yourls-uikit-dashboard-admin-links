@@ -3,7 +3,7 @@
 Plugin Name: UIkit Dashboard Admin Links
 Plugin URI: https://github.com/richashford/yourls-uikit-dashboard-admin-links
 Description: Companion to the UIkit Skin: makes the Dashboard's "Top performers" and "Recently created" short URLs open the admin Links list filtered to that keyword (where the row actions live), and restyles the per-link stats page (margins, card layout, pill tabs) to match the skin.
-Version: 1.1
+Version: 1.2
 Author: Richard Ashford
 Author URI: https://github.com/richashford
 */
@@ -16,6 +16,197 @@ yourls_add_action( 'html_head', 'rja_uikit_infos_styles' );
 yourls_add_action( 'pre_html_head', 'rja_uikit_infos_nocache' );
 yourls_add_action( 'html_footer', 'rja_uikit_infos_nav_unwrap' );
 yourls_add_action( 'html_footer', 'rja_uikit_filter_to_top' );
+yourls_add_action( 'yourls_ajax_rja_dashboard', 'rja_uikit_dashboard_data' );
+yourls_add_action( 'html_footer', 'rja_uikit_dashboard_periods' );
+
+/**
+ * admin-ajax.php?action=rja_dashboard&period=all|24h|7d|30d
+ * Returns {top: [...], recent: [...]} for the dashboard cards, 10 rows each.
+ * "all" reads url.clicks; the periods count rows in the log table.
+ */
+function rja_uikit_dashboard_data() {
+    $ydb       = yourls_get_db();
+    $url_table = YOURLS_DB_TABLE_URL;
+    $log_table = YOURLS_DB_TABLE_LOG;
+    $limit     = 10;
+
+    $period    = isset( $_GET['period'] ) ? $_GET['period'] : 'all';
+    $intervals = array( '24h' => '24 HOUR', '7d' => '7 DAY', '30d' => '30 DAY' );
+
+    if ( $period === 'all' ) {
+        $top = $ydb->fetchObjects(
+            "SELECT `keyword`, `title`, `url`, `clicks`
+             FROM `$url_table` ORDER BY `clicks` DESC LIMIT $limit" );
+    } elseif ( isset( $intervals[ $period ] ) ) {
+        $iv  = $intervals[ $period ];
+        $top = $ydb->fetchObjects(
+            "SELECT u.`keyword`, u.`title`, u.`url`, COUNT(*) AS `clicks`
+             FROM `$log_table` l
+             JOIN `$url_table` u ON u.`keyword` = l.`shorturl`
+             WHERE l.`click_time` >= NOW() - INTERVAL $iv
+             GROUP BY l.`shorturl`
+             ORDER BY `clicks` DESC LIMIT $limit" );
+    } else {
+        header( 'Content-Type: application/json' );
+        echo json_encode( array( 'error' => 'bad period' ) );
+        die();
+    }
+
+    $recent = $ydb->fetchObjects(
+        "SELECT `keyword`, `title`, `url`, `timestamp`
+         FROM `$url_table` ORDER BY `timestamp` DESC LIMIT $limit" );
+
+    header( 'Content-Type: application/json' );
+    echo json_encode( array( 'top' => $top, 'recent' => $recent ) );
+    die();
+}
+
+/**
+ * On the UIkit Skin dashboard: add period badges (24 hours / Week / Month /
+ * All time) to the "Top performers" card and grow both lists to 10 rows,
+ * fed by the rja_dashboard ajax action. No skin or core files touched.
+ */
+function rja_uikit_dashboard_periods() {
+    if ( !yourls_is_admin() ) {
+        return;
+    }
+    $ajax_url    = yourls_add_query_arg( array( 'action' => 'rja_dashboard' ), yourls_admin_url( 'admin-ajax.php' ) );
+    $admin_index = yourls_admin_url( 'index.php' );
+    ?>
+    <style>
+    .rja-periods { display: inline-flex; gap: 6px; margin-left: 12px; vertical-align: middle; }
+    .rja-periods button {
+        border: 1px solid var(--sb-border, #e5e9f0);
+        background: var(--sb-bg, #f6f8fb);
+        color: #444;
+        border-radius: 999px;
+        padding: 3px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .rja-periods button.rja-active {
+        background: var(--sb-accent, #1e87f0);
+        border-color: var(--sb-accent, #1e87f0);
+        color: #fff;
+    }
+    </style>
+    <script>
+    (function () {
+        var cards = document.querySelectorAll('.sb-list-card');
+        if (!cards.length) return;
+        var topCard = null, recentCard = null;
+        cards.forEach(function (c) {
+            var t = (c.querySelector('.uk-card-title') || {}).textContent || '';
+            if (t.indexOf('Top performers') !== -1) topCard = c;
+            if (t.indexOf('Recently created') !== -1) recentCard = c;
+        });
+        if (!topCard || !recentCard) return;
+
+        var ajaxUrl = <?php echo json_encode( $ajax_url ); ?>;
+        var adminIndex = <?php echo json_encode( $admin_index ); ?>;
+
+        function keywordCell(row) {
+            var td = document.createElement('td');
+            var a = document.createElement('a');
+            a.href = adminIndex + '?search=' + encodeURIComponent(row.keyword) + '&search_in=keyword';
+            a.textContent = row.keyword;
+            a.title = 'Show "' + row.keyword + '" in the Links list';
+            td.appendChild(a);
+            return td;
+        }
+        function destCell(row) {
+            var td = document.createElement('td');
+            td.className = 'sb-truncate';
+            if (row.title) {
+                var strong = document.createElement('strong');
+                strong.className = 'sb-list-title';
+                strong.textContent = row.title;
+                td.appendChild(strong);
+                td.appendChild(document.createElement('br'));
+            }
+            var small = document.createElement('small');
+            small.className = 'uk-text-muted';
+            small.textContent = row.url;
+            td.appendChild(small);
+            return td;
+        }
+        function fillTop(rows) {
+            var tbody = topCard.querySelector('tbody');
+            if (!tbody) return;
+            tbody.textContent = '';
+            rows.forEach(function (row) {
+                var tr = document.createElement('tr');
+                tr.appendChild(keywordCell(row));
+                tr.appendChild(destCell(row));
+                var td = document.createElement('td');
+                td.className = 'uk-text-right';
+                var span = document.createElement('span');
+                span.className = 'uk-label sb-clicks-badge';
+                span.textContent = Number(row.clicks).toLocaleString();
+                td.appendChild(span);
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            });
+        }
+        function fillRecent(rows) {
+            var tbody = recentCard.querySelector('tbody');
+            if (!tbody) return;
+            tbody.textContent = '';
+            rows.forEach(function (row) {
+                var tr = document.createElement('tr');
+                var kc = keywordCell(row);
+                kc.className = 'sb-truncate';
+                tr.appendChild(kc);
+                tr.appendChild(destCell(row));
+                var td = document.createElement('td');
+                td.className = 'uk-text-right';
+                var small = document.createElement('small');
+                small.className = 'uk-text-muted';
+                var d = new Date((row.timestamp || '').replace(' ', 'T'));
+                small.textContent = isNaN(d) ? (row.timestamp || '') :
+                    d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
+                    d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+                td.appendChild(small);
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            });
+        }
+        function load(period, withRecent) {
+            fetch(ajaxUrl + '&period=' + period, { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.top) fillTop(data.top);
+                    if (withRecent && data.recent) fillRecent(data.recent);
+                });
+        }
+
+        // Period badges on the Top performers title
+        var title = topCard.querySelector('.uk-card-title');
+        var holder = document.createElement('span');
+        holder.className = 'rja-periods';
+        var periods = [ ['24h', '24 hours'], ['7d', 'Week'], ['30d', 'Month'], ['all', 'All time'] ];
+        periods.forEach(function (p) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.period = p[0];
+            b.textContent = p[1];
+            if (p[0] === 'all') b.classList.add('rja-active');
+            b.addEventListener('click', function () {
+                holder.querySelectorAll('button').forEach(function (x) { x.classList.remove('rja-active'); });
+                b.classList.add('rja-active');
+                load(p[0], false);
+            });
+            holder.appendChild(b);
+        });
+        title.appendChild(holder);
+
+        // Initial load: default All time, 10 rows in both cards
+        load('all', true);
+    })();
+    </script>
+    <?php
+}
 
 /**
  * The admin Links page renders the search/filter form inside the table's

@@ -39,11 +39,11 @@ function rja_uikit_filter_to_top() {
         margin: 0 !important;
     }
     #rja-filter-top #filter_form form { margin: 0 !important; }
-    #rja-filter-top #filter_options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+    /* Keep the form's natural inline flow, just give the wrapped lines and
+       controls room to breathe. */
+    #rja-filter-top #filter_options { line-height: 2.8; }
+    #rja-filter-top #filter_options input,
+    #rja-filter-top #filter_options select { margin: 0 4px; }
     </style>
     <script>
     (function () {

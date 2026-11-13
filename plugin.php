@@ -14,6 +14,24 @@ if( !defined( 'YOURLS_ABSPATH' ) ) die();
 yourls_add_action( 'html_footer', 'rja_uikit_dash_admin_links' );
 yourls_add_action( 'html_head', 'rja_uikit_infos_styles' );
 yourls_add_action( 'pre_html_head', 'rja_uikit_infos_nocache' );
+yourls_add_action( 'html_footer', 'rja_uikit_infos_nav_unwrap' );
+
+/**
+ * The skin renders its navbar inside #wrap. On the stats page #wrap becomes a
+ * centred card (see rja_uikit_infos_styles), which would trap the navbar in
+ * the card; move it out so it spans the full width like on the admin pages.
+ */
+function rja_uikit_infos_nav_unwrap() {
+    ?>
+    <script>
+    (function () {
+        if (!document.body.classList.contains('infos')) return;
+        var nav = document.querySelector('#wrap > nav.sb-navbar');
+        if (nav) document.body.insertBefore(nav, document.body.firstChild);
+    })();
+    </script>
+    <?php
+}
 
 /**
  * Stats pages are plain 200 responses with no cache headers, so a CDN in

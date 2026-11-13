@@ -40,59 +40,70 @@ function rja_uikit_infos_styles( $args ) {
     }
     ?>
     <style>
+    /* The UIkit Skin resets #wrap and backgrounds with !important, so these
+       rules (loaded before skin.css) must use !important too. */
     body.infos {
-        background: var(--sb-bg, #f6f8fb);
+        background: var(--sb-bg, #f6f8fb) !important;
     }
     body.infos #wrap {
-        max-width: 1100px;
-        margin: 28px auto 48px;
-        padding: 28px 32px;
-        background: var(--sb-card-bg, #ffffff);
-        border: 1px solid var(--sb-border, #e5e9f0);
-        border-radius: var(--sb-radius, 10px);
-        box-sizing: border-box;
+        max-width: 1100px !important;
+        margin: 28px auto 48px !important;
+        padding: 28px 32px !important;
+        background: var(--sb-card-bg, #ffffff) !important;
+        border: 1px solid var(--sb-border, #e5e9f0) !important;
+        border-radius: var(--sb-radius, 10px) !important;
+        box-sizing: border-box !important;
     }
     @media (max-width: 1160px) {
-        body.infos #wrap { margin-left: 16px; margin-right: 16px; }
+        body.infos #wrap { margin-left: 16px !important; margin-right: 16px !important; }
     }
     body.infos h2#informations {
-        margin-top: 0;
-        font-size: 1.1rem;
-        line-height: 1.45;
+        margin-top: 0 !important;
+        font-size: 1.1rem !important;
+        line-height: 1.45 !important;
         word-break: break-all;
-        color: #333;
+        color: #333 !important;
     }
     body.infos h3 .label { color: #666; font-weight: 600; }
     body.infos ul#headers.stat_tab {
-        display: flex;
+        display: flex !important;
         flex-wrap: wrap;
         gap: 8px;
-        list-style: none;
-        margin: 20px 0 0;
-        padding: 0 0 14px;
-        border-bottom: 1px solid var(--sb-border, #e5e9f0);
+        list-style: none !important;
+        margin: 20px 0 0 !important;
+        padding: 0 0 14px !important;
+        border-bottom: 1px solid var(--sb-border, #e5e9f0) !important;
     }
-    body.infos ul#headers.stat_tab li { margin: 0; padding: 0; background: none; }
+    body.infos ul#headers.stat_tab li {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: none !important;
+        float: none !important;
+        display: block !important;
+    }
     body.infos ul#headers.stat_tab li a {
-        display: block;
-        padding: 7px 16px;
-        background: var(--sb-bg, #f6f8fb);
-        border: 1px solid var(--sb-border, #e5e9f0);
-        border-radius: 999px;
-        text-decoration: none;
+        display: block !important;
+        padding: 7px 16px !important;
+        background: var(--sb-bg, #f6f8fb) !important;
+        border: 1px solid var(--sb-border, #e5e9f0) !important;
+        border-radius: 999px !important;
+        text-decoration: none !important;
     }
     body.infos ul#headers.stat_tab li a h2 {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #444;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        color: #444 !important;
+        display: inline !important;
+        border: 0 !important;
     }
     body.infos ul#headers.stat_tab li.selected a {
-        background: var(--sb-accent, #1e87f0);
-        border-color: var(--sb-accent, #1e87f0);
+        background: var(--sb-accent, #1e87f0) !important;
+        border-color: var(--sb-accent, #1e87f0) !important;
     }
-    body.infos ul#headers.stat_tab li.selected a h2 { color: #fff; }
-    body.infos .tab > h2 { font-size: 1.05rem; margin-top: 24px; }
+    body.infos ul#headers.stat_tab li.selected a h2 { color: #fff !important; }
+    body.infos .tab > h2 { font-size: 1.05rem !important; margin-top: 24px !important; }
     </style>
     <?php
 }

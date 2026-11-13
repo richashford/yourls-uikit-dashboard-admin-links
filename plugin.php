@@ -84,7 +84,8 @@ function rja_uikit_infos_styles( $args ) {
         word-break: break-all;
         color: #333 !important;
     }
-    body.infos h3 .label { color: #666; font-weight: 600; }
+    body.infos h3 .label { color: #666; font-weight: 600; white-space: nowrap; }
+    body.infos h3 { display: flex !important; align-items: center; gap: 6px; }
     body.infos ul#headers.stat_tab {
         display: flex !important;
         flex-wrap: wrap;

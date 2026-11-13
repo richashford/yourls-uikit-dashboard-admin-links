@@ -13,6 +13,20 @@ if( !defined( 'YOURLS_ABSPATH' ) ) die();
 
 yourls_add_action( 'html_footer', 'rja_uikit_dash_admin_links' );
 yourls_add_action( 'html_head', 'rja_uikit_infos_styles' );
+yourls_add_action( 'pre_html_head', 'rja_uikit_infos_nocache' );
+
+/**
+ * Stats pages are plain 200 responses with no cache headers, so a CDN in
+ * front of the site (20i StackCDN here) caches them and serves stale click
+ * numbers and markup. Mark them uncacheable.
+ */
+function rja_uikit_infos_nocache( $args ) {
+    $context = is_array( $args ) ? $args[0] : $args;
+    if ( $context === 'infos' && !headers_sent() ) {
+        header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+        header( 'Pragma: no-cache' );
+    }
+}
 
 /**
  * On the per-link stats page (yourls-infos.php, body.infos), give the content

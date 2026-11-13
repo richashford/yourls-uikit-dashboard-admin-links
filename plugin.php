@@ -2,8 +2,8 @@
 /*
 Plugin Name: UIkit Dashboard Admin Links
 Plugin URI: https://github.com/richashford/yourls-uikit-dashboard-admin-links
-Description: Companion to the UIkit Skin: makes the Dashboard's "Top performers" and "Recently created" short URLs open the admin Links list filtered to that keyword (where the row actions live), instead of following the redirect.
-Version: 1.0
+Description: Companion to the UIkit Skin: makes the Dashboard's "Top performers" and "Recently created" short URLs open the admin Links list filtered to that keyword (where the row actions live), and restyles the per-link stats page (margins, card layout, pill tabs) to match the skin.
+Version: 1.1
 Author: Richard Ashford
 Author URI: https://github.com/richashford
 */
@@ -12,6 +12,76 @@ Author URI: https://github.com/richashford
 if( !defined( 'YOURLS_ABSPATH' ) ) die();
 
 yourls_add_action( 'html_footer', 'rja_uikit_dash_admin_links' );
+yourls_add_action( 'html_head', 'rja_uikit_infos_styles' );
+
+/**
+ * On the per-link stats page (yourls-infos.php, body.infos), give the content
+ * the same card treatment as the UIkit Skin: centred container with margins,
+ * white card, pill-style tabs. Pure CSS, no markup or behaviour changes.
+ */
+function rja_uikit_infos_styles( $args ) {
+    $context = is_array( $args ) ? $args[0] : $args;
+    if ( $context !== 'infos' ) {
+        return;
+    }
+    ?>
+    <style>
+    body.infos {
+        background: var(--sb-bg, #f6f8fb);
+    }
+    body.infos #wrap {
+        max-width: 1100px;
+        margin: 28px auto 48px;
+        padding: 28px 32px;
+        background: var(--sb-card-bg, #ffffff);
+        border: 1px solid var(--sb-border, #e5e9f0);
+        border-radius: var(--sb-radius, 10px);
+        box-sizing: border-box;
+    }
+    @media (max-width: 1160px) {
+        body.infos #wrap { margin-left: 16px; margin-right: 16px; }
+    }
+    body.infos h2#informations {
+        margin-top: 0;
+        font-size: 1.1rem;
+        line-height: 1.45;
+        word-break: break-all;
+        color: #333;
+    }
+    body.infos h3 .label { color: #666; font-weight: 600; }
+    body.infos ul#headers.stat_tab {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        list-style: none;
+        margin: 20px 0 0;
+        padding: 0 0 14px;
+        border-bottom: 1px solid var(--sb-border, #e5e9f0);
+    }
+    body.infos ul#headers.stat_tab li { margin: 0; padding: 0; background: none; }
+    body.infos ul#headers.stat_tab li a {
+        display: block;
+        padding: 7px 16px;
+        background: var(--sb-bg, #f6f8fb);
+        border: 1px solid var(--sb-border, #e5e9f0);
+        border-radius: 999px;
+        text-decoration: none;
+    }
+    body.infos ul#headers.stat_tab li a h2 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #444;
+    }
+    body.infos ul#headers.stat_tab li.selected a {
+        background: var(--sb-accent, #1e87f0);
+        border-color: var(--sb-accent, #1e87f0);
+    }
+    body.infos ul#headers.stat_tab li.selected a h2 { color: #fff; }
+    body.infos .tab > h2 { font-size: 1.05rem; margin-top: 24px; }
+    </style>
+    <?php
+}
 
 /**
  * On the UIkit Skin dashboard page only, rewrite the short-URL anchors in the

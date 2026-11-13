@@ -29,7 +29,21 @@ function rja_uikit_filter_to_top() {
     ?>
     <style>
     #rja-filter-top { margin: 0 0 18px; }
-    #rja-filter-top #filter_form { padding: 0 !important; }
+    /* The skin gives #filter_form a card look (border, 16px padding); make it
+       span the full table width and keep even spacing inside. */
+    #rja-filter-top #filter_form {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+        padding: 18px 20px !important;
+        margin: 0 !important;
+    }
+    #rja-filter-top #filter_form form { margin: 0 !important; }
+    #rja-filter-top #filter_options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
     </style>
     <script>
     (function () {
